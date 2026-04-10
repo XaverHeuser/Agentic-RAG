@@ -1,5 +1,6 @@
 import os
-import shutil
+from pathlib import Path
+
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -18,21 +19,39 @@ LOCATION = 'us-central1'
 vertexai.init(project=PROJECT_ID, location=LOCATION)
 
 
-def start_ingestion(pdf_path):
-    # 1. Clean Start: Alten Datenbank-Ordner löschen
-    if os.path.exists("./chroma_db"):
-        shutil.rmtree("./chroma_db")
-        print("Alte Datenbank gelöscht.")
+def process_file(file_path, db, text_splitter):
+    """Verarbeitet eine einzelne PDF-Datei."""
+    try:
+        print(f"Verarbeite: {file_path.name}...")
+        loader = PyPDFLoader(str(file_path))
+        data = loader.load()
+        
+        chunks = text_splitter.split_documents(data)
+        print(chunks[0])
+        print(chunks[1])
+        print(chunks[2])
+        print(chunks[-1])
+        print(chunks[-2])
 
-    # 2. PDF laden & splitten
-    loader = PyPDFLoader(pdf_path)
-    data = loader.load()
-    
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    chunks = text_splitter.split_documents(data)
-    print(f"PDF geladen. {len(chunks)} Chunks erzeugt.")
+        print("Starte schrittweise Indizierung...")
+        for i, chunk in enumerate(chunks):
+            try:
+                db.add_documents([chunk])
+                if (i + 1) % 5 == 0:
+                    print(f"Fortschritt: {i + 1}/{len(chunks)} Chunks verarbeitet...")
+            except Exception as e:
+                print(f"❌ Fehler bei Chunk {i}: {e}")
+                continue # Weitermachen bei Fehlern
 
-    # 3. Embeddings initialisieren
+        print(f"✅ Fertig! {len(chunks)} Chunks sind jetzt in der ChromaDB.")
+    except Exception as e:
+        print(f"Fehler bei {file_path.name}: {e}")
+
+
+def start_ingestion(input_path):
+    """This function ..."""
+
+    # Create embeddings using Google Generative AI
     embeddings = GoogleGenerativeAIEmbeddings(
         model="models/gemini-embedding-2-preview",
         version="v1beta",
@@ -41,25 +60,32 @@ def start_ingestion(pdf_path):
         vertexai=True,
     )
     
-    # 4. ChromaDB initialisieren
+    # Initialize ChromaDB
     db = Chroma(
         persist_directory="./chroma_db",
         embedding_function=embeddings,
         collection_name="uni_docs"
     )
 
-    # 5. Einzel-Upload (Sicherheits-Strategie)
-    print("Starte schrittweise Indizierung...")
-    for i, chunk in enumerate(chunks):
-        try:
-            db.add_documents([chunk])
-            if (i + 1) % 5 == 0:
-                print(f"Fortschritt: {i + 1}/{len(chunks)} Chunks verarbeitet...")
-        except Exception as e:
-            print(f"❌ Fehler bei Chunk {i}: {e}")
-            continue # Weitermachen bei Fehlern
+    # Initialize Text Splitter
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    
+    path = Path(input_path)
+    print(10* '=')
+    print(f"Starte Ingestion für: {path.absolute()}")
 
-    print(f"✅ Fertig! {len(chunks)} Chunks sind jetzt in der ChromaDB.")
+    if path.is_file():
+        if path.suffix.lower() == '.pdf':
+            process_file(path, db, text_splitter)
+    
+    elif path.is_dir():
+        print(f"Durchsuche Ordner: {path.absolute()}")
+        # .rglob('*') findet alles rekursiv in Unterordnern
+        for file in path.rglob('*.pdf'):
+            process_file(file, db, text_splitter)
+
+    print("\n🚀 Ingestion-Prozess beendet.")
 
 if __name__ == "__main__":
-    start_ingestion("./data/Mobile Anwendungen - VL1 - Tel.pdf")
+    target = "./data" 
+    start_ingestion(target)

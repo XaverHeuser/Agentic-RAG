@@ -36,8 +36,14 @@ def execute_retrieval(query: str):
     # Wir bereiten den Text für Gemini vor
     context = ""
     for doc in results:
+        full_path = doc.metadata.get('source', 'Unbekanntes Dokument')
+        doc_name = os.path.basename(full_path)
+
+        page_index = doc.metadata.get('page', 0)
+        pdf_page_number = int(page_index) + 1
+
         page = doc.metadata.get('page', 'unbekannt')
-        context += f"\n--- Seite {page} ---\n{doc.page_content}\n"
+        context += f"\n--- QUELLE: {doc_name} | SEITE: {pdf_page_number} ---\n{doc.page_content}\n"    
     
     return context
 
@@ -59,7 +65,11 @@ search_tool = Tool(
 model = GenerativeModel(
     "gemini-2.5-flash",
     tools=[search_tool],
-    system_instruction="Du bist der ScholarAgent. Nutze das Tool für jede Fachfrage. Nenne Seitenzahlen."
+    system_instruction=(
+        "Du bist der ScholarAgent. Beantworte Fachfragen präzise und ausschließlich auf Basis der vorhandenen Dokumente.\n"
+        "REGLER FÜR ZITATE:\n"
+        "1. Fasse am Ende deiner Antwort alle verwendeten Dokumente in einer kurzen Liste 'Verwendete Quellen' zusammen und zitieren deine Aussagen im IEEE-Stil. Füge auch eine Seitenzahl zu der Quelle hinzu.\n"
+    )
 )
 
 # 4. DER AGENTEN-LOOP
@@ -86,4 +96,4 @@ def ask_agent(question: str):
     print(f"\n🤖 ScholarAgent:\n{response.text}")
 
 if __name__ == "__main__":
-    ask_agent("Was muss ich über die Android Platform wissen?")
+    ask_agent("Bridge Architektur")

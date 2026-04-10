@@ -82,6 +82,10 @@ class AgentStore:
             query, k=k
         )  # TODO: Check sim_search implementation
 
+        if not results:
+            logger.warning(f'No relevant documents found for query: {query}')
+            return 'No relevant information found in the docs for this specific query.'
+
         context = ''
         for doc in results:
             name = os.path.basename(doc.metadata.get('source', 'Unknown'))

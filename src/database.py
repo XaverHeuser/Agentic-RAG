@@ -1,0 +1,92 @@
+import logging
+import os
+from pathlib import Path
+
+from langchain_chroma import Chroma  # TODO: Check functionality
+from langchain_community.document_loaders import (
+    PyPDFLoader,  # TODO: Check functionality alternatives
+)
+from langchain_google_genai import (
+    GoogleGenerativeAIEmbeddings,  # TODO: Check functionality
+)
+from langchain_text_splitters import (
+    RecursiveCharacterTextSplitter,  # TODO: Check funtionality
+)
+
+from .config import Config
+
+
+# Initialize logger
+logger = logging.getLogger(__name__)
+
+
+class AgentStore:
+    """Handles vector database operations including ingestion and semantic search."""
+
+    def __init__(self, config: Config):
+        """Initializes the vector store with embeddings and ChromaDB connection."""
+        self.config = config
+        self.embeddings = GoogleGenerativeAIEmbeddings(
+            model=self.config.EMBEDDING_MODEL,
+            version='v1beta',
+            project=self.config.PROJECT_ID,
+            location=self.config.LOCATION,
+            vertexai=True,
+        )
+        self.vector_db = Chroma(
+            persist_directory=self.config.DB_DIR,
+            embedding_function=self.embeddings,
+            collection_name=self.config.COLLECTION_NAME,
+        )
+        logger.info('AgentStore initialized successfully')
+
+    def ingest_path(self, path_str=str) -> None:
+        """Recursively processes PDFs from a file or directory into the vector store."""
+
+        path = Path(path_str)
+
+        # Find all PDFs in the given path
+        loader_files = (
+            list(path.rglob('*.pdf'))
+            if path.is_dir()
+            else ([path] if path.suffix == '.pdf' else [])
+        )
+
+        if not loader_files:
+            logger.warning(f'No pdf files found at path: {path_str}')
+            return
+
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=100
+        )  # TODO: Parameter tuning
+
+        for file in loader_files:
+            logger.info(f'Starting ingestion for: {file.name}')
+            try:
+                loader = PyPDFLoader(str(file))
+                data = loader.load()
+                chunks = splitter.split_documents(data)
+                self.vector_db.add_documents(
+                    chunks
+                )  # TODO: Check status, else take diff method
+                logger.info(
+                    f'Successfully added {len(chunks)} from {file.name} to vector db'
+                )
+            except Exception as e:
+                logger.error(f'Failed to ingest {file.name}: {str(e)}')
+
+    def search(self, query: str, k: int = 3) -> str:
+        """Performs a similarity search and returns a formatted context string."""
+        logger.debug(f'Performing vector search for query: {query}')
+        results = self.vector_db.similarity_search(
+            query, k=k
+        )  # TODO: Check sim_search implementation
+
+        context = ''
+        for doc in results:
+            name = os.path.basename(doc.metadata.get('source', 'Unknown'))
+            page = int(doc.metadata.get('page', 0)) + 1
+            context += f'\n--- Source: {name} | Page: {page} ---\n{doc.page_content}\n'
+
+        logger.info(f'Retrieved {len(results)} chunks for the agent')
+        return context

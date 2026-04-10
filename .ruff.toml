@@ -8,7 +8,7 @@ preview = true
 skip-magic-trailing-comma = true
 
 [lint]
-select = ['E', 'W', 'F', 'C', 'B', 'I', 'UP']
+select = ['E', 'W', 'F', 'C', 'B', 'I', 'UP', 'TD']
 ignore = ['E501']
 
 [lint.pydocstyle]

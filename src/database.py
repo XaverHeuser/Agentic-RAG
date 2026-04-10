@@ -66,9 +66,19 @@ class AgentStore:
                 loader = PyPDFLoader(str(file))
                 data = loader.load()
                 chunks = splitter.split_documents(data)
-                self.vector_db.add_documents(
-                    chunks
-                )  # TODO: Check status, else take diff method
+
+                logger.info('Start step-by-step chunk-loading')
+                for i, chunk in enumerate(chunks):
+                    try:
+                        self.vector_db.add_documents([chunk])
+                        if (i + 1) % 5 == 0:
+                            logger.info(
+                                f'Progess: {i + 1}/{len(chunks)} Chunks handled ...'
+                            )
+                    except Exception as e:
+                        logger.warning(f'Error adding chunk to vectordb: {str(e)}')
+                        continue
+
                 logger.info(
                     f'Successfully added {len(chunks)} from {file.name} to vector db'
                 )

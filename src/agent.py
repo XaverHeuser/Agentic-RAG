@@ -39,7 +39,7 @@ class Agent:
             'temperature': 0.1,  # Low -> Strict, less creativity
             'top_p': 0.95,
             'top_k': 40,
-            'max_output_tokens': 1024,
+            'max_output_tokens': 4096,
         }
 
         self.model = GenerativeModel(

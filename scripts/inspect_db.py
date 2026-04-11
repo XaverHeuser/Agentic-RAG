@@ -21,7 +21,6 @@ def run_inspection():
     print(f'Total Chunks: {count}')
 
     if count > 0:
-        # We use [0] instead of [1] to avoid IndexErrors on small DBs
         print('\n--- Sample Entry (First Chunk) ---')
         print(f'ID:       {content["ids"][0]}')
         print(f'Metadata: {content["metadatas"][0]}')

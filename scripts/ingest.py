@@ -45,7 +45,3 @@ def run_ingestion():
 
 if __name__ == '__main__':
     run_ingestion()
-
-# Example calls of this script:
-# python scripts/ingest.py
-# python scripts/ingest.py ./data

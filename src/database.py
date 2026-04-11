@@ -32,14 +32,15 @@ class AgentStore:
             embedding_function=self.embeddings,
             collection_name=self.config.COLLECTION_NAME,
         )
-        logger.info('AgentStore initialized successfully')
 
-        # Map extensions to loader classes
         self.LOADER_MAPPING = {
             '.pdf': PyPDFLoader,
             '.docx': Docx2txtLoader,
             '.txt': TextLoader,
         }
+
+        logger.info('AgentStore initialized successfully')
+                
 
     def ingest_path(self, path_str=str) -> None:
         """

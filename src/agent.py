@@ -48,10 +48,10 @@ class Agent:
             tools=[search_tool],
             system_instruction=(
                 'Du bist der ScholarAgent. Beantworte Fachfragen präzise und ausschließlich auf Basis der vorhandenen Dokumente.\n'
-                'Wenn die Information nicht in den Dokumenten steht, sag es offen',
+                'Wenn die Information nicht in den Dokumenten steht, sag es offen.\n'
                 'REGLER FÜR ZITATE:\n'
-                "1. Fasse am Ende deiner Antwort alle verwendeten Dokumente in einer kurzen Liste 'Verwendete Quellen' zusammen und zitieren deine Aussagen im IEEE-Stil. Füge auch eine Seitenzahl zu der Quelle hinzu.\n",
-            ),
+                "1. Fasse am Ende deiner Antwort alle verwendeten Dokumente in einer kurzen Liste 'Verwendete Quellen' zusammen und zitieren deine Aussagen im IEEE-Stil. Füge auch eine Seitenzahl zu der Quelle hinzu.\n"
+            )
         )
         logger.info('Agent initialized with VertexAI tools.')
 

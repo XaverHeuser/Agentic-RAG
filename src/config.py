@@ -16,7 +16,7 @@ class Config:
     LOCATION: str = 'us-central1'
     DB_DIR: str = './chroma_db'
     COLLECTION_NAME: str = 'uni_docs'
-    EMBEDDING_MODEL: str = 'models/gemini-embedding-2-preview'
+    EMBEDDING_MODEL: str = 'models/gemini-embedding-001'
     AGENT_MODEL: str = 'gemini-2.5-flash'
     LOG_FILE: str = 'agent.log'
     LOG_LEVEL: int = logging.INFO

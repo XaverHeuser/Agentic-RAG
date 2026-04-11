@@ -82,24 +82,18 @@ class AgentStore:
                 if not loader_class:
                     continue
 
+                # load data and create chunks
                 loader = loader_class(str(file))
                 data = loader.load()
                 chunks = splitter.split_documents(data)
+                if not chunks:
+                    continue
 
-                logger.info('Start step-by-step chunk-loading')
-                for i, chunk in enumerate(chunks):
-                    try:
-                        self.vector_db.add_documents([chunk])
-                        if (i + 1) % 5 == 0:
-                            logger.info(
-                                f'Progess: {i + 1}/{len(chunks)} Chunks handled ...'
-                            )
-                    except Exception as e:
-                        logger.warning(f'Error adding chunk to vectordb: {str(e)}')
-                        continue
+                # Add chunks to vector db
+                self.vector_db.add_documents(chunks)
 
                 logger.info(
-                    f'Successfully added {len(chunks)} from {file.name} to vector db'
+                    f'Successfully added {len(chunks)} chunks from {file.name} to vector db'
                 )
             except Exception as e:
                 logger.error(f'Failed to ingest {file.name}: {str(e)}')

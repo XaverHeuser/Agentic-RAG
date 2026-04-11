@@ -37,7 +37,7 @@ def run_ingestion():
 
         logger.info(f'Starting ingestion for: {target_path}')
         store.ingest_path(target_path)
-        logger.info('Ingestion complete. Check scholar_agent.log for details.')
+        logger.info('Ingestion complete. Check agent.log for details.')
 
     except Exception as e:
         logger.critical(f'Error while ingesting new data: {str(e)}')

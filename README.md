@@ -6,6 +6,8 @@
 
 File: *database.py*
 
+### AgentStore Class
+
 The **AgentStore class** serves as the central hub for document processing and semantic retrieval. It bridges the gap between raw unstructured data (PDFs, Word docs, Text) and the AI’s reasoning capabilities.
 
 - *ingest_path*
@@ -13,6 +15,21 @@ The **AgentStore class** serves as the central hub for document processing and s
   - Vectorized Memory: Leverages [Google Gemini Embeddings](https://reference.langchain.com/python/langchain-google-genai/embeddings/GoogleGenerativeAIEmbeddings) to convert text into high-dimensional vectors stored in a local [ChromaDB](https://reference.langchain.com/python/langchain-chroma/vectorstores/Chroma) instance.
 - *search*
   - Provides a context-aware search interface that retrieves the most relevant document snippets using similarity search and returns context attributes (filename and page numbers).
+
+### Vector DB
+
+In this project, [ChromaDB](https://reference.langchain.com/python/langchain-chroma/vectorstores/Chroma) with langchain is utilized as the core vector store to manage document embeddings and perform semantic retrieval.
+
+- A Vector Database stores data as high-dimensional mathematical representations called embeddings
+- When a query is made, the database doesn't look for keyword matches; instead, it calculates the "distance" between the query's vector and the stored document vectors. This enables semantic search, where the system understands the meaning and context of the query, allowing it to find relevant information even if the exact words are different.
+- **Advantages:**
+  - *Lightweight & Embeddable:* It is designed to be easily integrated into Python applications without the overhead of a massive external server.
+  - *Developer-First:* It offers a simple, intuitive API that integrates seamlessly with LangChain and Google’s Generative AI models.
+  - *In-Memory & Persistent:* Chroma can run entirely in memory for fast testing or persist data to disk for long-term storage, which is ideal for this agent's document storage.
+  - *Fast Similarity Search:* It utilizes optimized algorithms (like HNSW) to perform incredibly fast "Nearest Neighbor" searches, even as the number of documents grows.
+- **Alternatives:**
+  - Pinecone, Weaviate/Milvus, FAISS, PGVector
+
 
 ## Config
 

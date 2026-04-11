@@ -2,16 +2,10 @@ import logging
 import os
 from pathlib import Path
 
-from langchain_chroma import Chroma  # TODO: Check functionality
-from langchain_community.document_loaders import (
-    PyPDFLoader,  # TODO: Check functionality alternatives
-)
-from langchain_google_genai import (
-    GoogleGenerativeAIEmbeddings,  # TODO: Check functionality
-)
-from langchain_text_splitters import (
-    RecursiveCharacterTextSplitter,  # TODO: Check funtionality
-)
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from .config import Config
 
@@ -56,9 +50,7 @@ class AgentStore:
             logger.warning(f'No pdf files found at path: {path_str}')
             return
 
-        splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000, chunk_overlap=100
-        )  # TODO: Parameter tuning
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
 
         for file in loader_files:
             logger.info(f'Starting ingestion for: {file.name}')
@@ -88,9 +80,7 @@ class AgentStore:
     def search(self, query: str, k: int = 3) -> str:
         """Performs a similarity search and returns a formatted context string."""
         logger.debug(f'Performing vector search for query: {query}')
-        results = self.vector_db.similarity_search(
-            query, k=k
-        )  # TODO: Check sim_search implementation
+        results = self.vector_db.similarity_search(query, k=k)
 
         if not results:
             logger.warning(f'No relevant documents found for query: {query}')

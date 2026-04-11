@@ -1,4 +1,4 @@
-from dataclasses import dataclass  # TODO: Check out
+from dataclasses import dataclass
 import logging
 import os
 
@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-@dataclass(frozen=True)  # TODO: Check out
+@dataclass(frozen=True)
 class Config:
     """Central configuration for the Agent Application."""
 

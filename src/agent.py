@@ -35,12 +35,20 @@ class Agent:
                 )
             ]
         )
+        generation_config = {
+            'temperature': 0.1,  # Low -> Strict, less creativity
+            'top_p': 0.95,
+            'top_k': 40,
+            'max_output_tokens': 4096,
+        }
 
         self.model = GenerativeModel(
             model_name=self.config.AGENT_MODEL,
+            generation_config=generation_config,
             tools=[search_tool],
             system_instruction=(
                 'Du bist der ScholarAgent. Beantworte Fachfragen präzise und ausschließlich auf Basis der vorhandenen Dokumente.\n'
+                'Wenn die Information nicht in den Dokumenten steht, sag es offen.\n'
                 'REGLER FÜR ZITATE:\n'
                 "1. Fasse am Ende deiner Antwort alle verwendeten Dokumente in einer kurzen Liste 'Verwendete Quellen' zusammen und zitieren deine Aussagen im IEEE-Stil. Füge auch eine Seitenzahl zu der Quelle hinzu.\n"
             ),

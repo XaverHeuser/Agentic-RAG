@@ -1,5 +1,9 @@
 import logging
+import os
 import sys
+
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.config import Config
 from src.database import AgentStore
@@ -43,5 +47,5 @@ if __name__ == '__main__':
     run_ingestion()
 
 # Example calls of this script:
-# python ingest.py
-# python ingest.py ./data
+# python scripts/ingest.py
+# python scripts/ingest.py ./data

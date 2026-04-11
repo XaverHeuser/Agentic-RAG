@@ -21,3 +21,7 @@ File: *config.py*
 - *Embedding Model*
   - Currently, the embedding model *models/gemini-embedding-001* from [GoogleGenerativeAIEmbeddings](https://reference.langchain.com/python/langchain-google-genai/embeddings/GoogleGenerativeAIEmbeddings) from [langchain-google-genai](https://reference.langchain.com/python/langchain-google-genai) is used
   - The embedding model acts as a semantic translator that converts text chunks into high-dimensional vectors (long lists of numbers). It captures the contextual meaning of words rather than just their spelling, placing similar concepts close together in a mathematical "vector space." This allows the system to find relevant information even if the search query uses different synonyms than the source document.
+
+- *Agent Model*
+  - Currently, the agent model *gemini-2.5-flash* from [GenAI on VertexAI](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash) is used
+  - It functions as the "reasoning engine" of the agent, processing the context retrieved from the vector database to generate human-like responses. The "Flash" variant is specifically optimized for efficiency at scale, featuring a massive context window that allows it to analyze large amounts of data (such as multiple lecture PDFs) simultaneously while maintaining rapid response times.

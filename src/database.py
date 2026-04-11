@@ -40,7 +40,6 @@ class AgentStore:
         }
 
         logger.info('AgentStore initialized successfully')
-                
 
     def ingest_path(self, path_str=str) -> None:
         """

@@ -16,9 +16,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ############################
-  # Linting and Formatting
-  ############################
+  #################################
+  # Backend Quality and Security
+  #################################
   backend-lint:
     name: Linting and Formatting
     runs-on: ubuntu-latest
@@ -49,6 +49,9 @@ jobs:
   backend-security:
     name: Security Scan
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
     steps:
       - uses: actions/checkout@v6
 
@@ -70,7 +73,7 @@ jobs:
   # Frontend Linting
   ########################
   frontend-lint:
-    name: Frontend-Linting
+    name: Frontend Linting
     runs-on: ubuntu-latest
     defaults:
       run:

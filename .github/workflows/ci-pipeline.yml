@@ -72,8 +72,8 @@ jobs:
   ########################
   # Frontend Quality
   ########################
-  frontend-lint:
-    name: Frontend Linting
+  frontend-quality:
+    name: Frontend Quality
     runs-on: ubuntu-latest
     defaults:
       run:

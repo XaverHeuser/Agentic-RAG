@@ -72,7 +72,7 @@ class AgentStore:
             return
 
         # Initialize splitter
-        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=200)
 
         for file in loader_files:
             logger.info(f'Starting ingestion for: {file.name}')
@@ -98,7 +98,7 @@ class AgentStore:
             except Exception as e:
                 logger.error(f'Failed to ingest {file.name}: {str(e)}')
 
-    def search(self, query: str, k: int = 3) -> str:
+    def search(self, query: str, k: int = 5) -> str:
         """Performs a similarity search and returns a formatted context string."""
         logger.debug(f'Performing vector search for query: {query}')
         results = self.vector_db.similarity_search(query, k=k)

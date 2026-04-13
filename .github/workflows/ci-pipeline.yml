@@ -19,9 +19,12 @@ jobs:
   ############################
   # Linting and Formatting
   ############################
-  lint:
+  backend-lint:
     name: Linting and Formatting
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
     steps:
       - uses: actions/checkout@v6
 
@@ -43,7 +46,7 @@ jobs:
   ########################
   # Security Scans
   ########################
-  security:
+  backend-security:
     name: Security Scan
     runs-on: ubuntu-latest
     steps:
@@ -62,3 +65,28 @@ jobs:
 
       - name: Run Bandit
         run: bandit -r . --exclude ./tests
+  
+  ########################
+  # Frontend Linting
+  ########################
+  frontend-lint:
+    name: Frontend-Linting
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint

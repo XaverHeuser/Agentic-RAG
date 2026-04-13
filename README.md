@@ -2,11 +2,20 @@
 
 - *NOTE: This Readme is work in progress*
 
-## AgentStore: The Knowledge Engine
+## Architecture
+
+The project is built as a Decoupled Monorepo, separating the AI reasoning logic from the user interface.
+
+- **Backend (FastAPI):** Orchestrates the Agentic RAG loop. It uses **Vertex AI (Gemini)** for reasoning and **ChromaDB** for semantic document retrieval.
+- **Frontend (Next.js):** A TypeScript-based chat interface with **Tailwind CSS** and **React** and **NextJS**
+
+## Components
+
+### AgentStore: The Knowledge Engine
 
 File: *database.py*
 
-### AgentStore Class
+#### AgentStore Class
 
 The **AgentStore class** serves as the central hub for document processing and semantic retrieval. It bridges the gap between raw unstructured data (PDFs, Word docs, Text) and the AI’s reasoning capabilities.
 
@@ -30,8 +39,7 @@ In this project, [ChromaDB](https://reference.langchain.com/python/langchain-chr
 - **Alternatives:**
   - Pinecone, Weaviate/Milvus, FAISS, PGVector
 
-
-## Config
+### Config
 
 File: *config.py*
 
@@ -42,3 +50,14 @@ File: *config.py*
 - *Agent Model*
   - Currently, the agent model *gemini-2.5-flash* from [GenAI on VertexAI](https://docs.cloud.google.com/vertex-ai/generative-ai/docs/models/gemini/2-5-flash) is used
   - It functions as the "reasoning engine" of the agent, processing the context retrieved from the vector database to generate human-like responses. The "Flash" variant is specifically optimized for efficiency at scale, featuring a massive context window that allows it to analyze large amounts of data (such as multiple lecture PDFs) simultaneously while maintaining rapid response times.
+
+## Testing & Quality
+
+A "Full-Stack" quality pipeline integrated via **GitHub Actions**
+
+Level       | Tool                    | Purpose
+------      | ------                  | -----------
+Linting     | Ruff (PY) / ESLint (TS) | Code style and static analysis
+Security    | Bandit / pip-audit      | Vulnerability scanning for Python dependencies
+Unit        | Pytest / Vitest         | Isolated testing of Agent tools and React components
+End-to-End  | Playwright              | Full flow validation (User -> API -> Agent -> UI)

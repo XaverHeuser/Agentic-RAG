@@ -3,7 +3,13 @@ import os
 from pathlib import Path
 
 from langchain_chroma import Chroma
-from langchain_community.document_loaders import Docx2txtLoader, PyPDFLoader, TextLoader
+from langchain_community.document_loaders import (
+    Docx2txtLoader,
+    NotebookLoader,
+    PyPDFLoader,
+    PythonLoader,
+    TextLoader,
+)
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -37,6 +43,8 @@ class AgentStore:
             '.pdf': PyPDFLoader,
             '.docx': Docx2txtLoader,
             '.txt': TextLoader,
+            '.py': PythonLoader,
+            '.ipynb': NotebookLoader,
         }
 
         logger.info('AgentStore initialized successfully')

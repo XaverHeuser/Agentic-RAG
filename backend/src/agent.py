@@ -1,7 +1,13 @@
 import logging
 
 import vertexai
-from vertexai.generative_models import FunctionDeclaration, GenerativeModel, Part, Tool
+from vertexai.generative_models import (
+    Content,
+    FunctionDeclaration,
+    GenerativeModel,
+    Part,
+    Tool,
+)
 
 from .config import Config
 
@@ -57,44 +63,106 @@ class Agent:
                 'REGLER FÜR ZITATE:\n'
                 "1. Jede faktische Aussage MUSS direkt im Text mit einer IEEE-Zitation belegt werden, z.B.: 'JavaScript ist asynchron [1, S. 14].'\n"
                 "2. Erstelle am Ende eine Liste 'Verwendete Quellen' im Format: [Nummer] Dateiname, Seitenzahl.\n"
+                'Zusätzlich: Beziehe dich auf den bisherigen Chat-Verlauf, falls der Nutzer Folgefragen stellt.'
             ),
         )
-        logger.info('Agent initialized with VertexAI tools.')
+
+        # Initialize a persistent chat session
+        self.chat_session = self.model.start_chat(history=[], response_validation=False)
+        logger.info('Agent initialized with persistent ChatSession.')
+
+    def _log_usage(self, response):
+        """Debug logs for token counting."""
+        usage = response.usage_metadata
+        logger.debug(
+            f'Token Usage -> Prompt: {usage.prompt_token_count}, '
+            f'Response: {usage.candidates_token_count}, '
+            f'Total: {usage.total_token_count}'
+        )
+
+    def _summarize_history(self):
+        """Reduces the token load by compressing older parts of the conversation."""
+        history = self.chat_session.history
+        if not history:
+            logger.debug('No chat history')
+            return
+
+        token_count = self.model.count_tokens(history).total_tokens
+        logger.debug(f'History Check: {len(history)} items, {token_count} tokens.')
+
+        if token_count > self.config.MAX_HISTORY_TOKENS:
+            logger.debug(f'Threshold reached ({token_count} tokens). Summarizing...')
+
+            # Split history: parts to summarize and parts to keep raw
+            split_idx = max(0, len(history) - self.config.MIN_RAW_TURNS_TO_KEEP)
+            to_summarize = history[:split_idx]
+            keep_raw = history[split_idx:]
+
+            # Request summary from the model
+            summary_response = self.model.generate_content([
+                *to_summarize,
+                Content(
+                    role='user', parts=[Part.from_text(self.config.SUMMARY_PROMPT)]
+                ),
+            ])
+
+            # Rebuild history: [Summary Marker] + [Summary Text] + [Raw Context]
+            new_history = [
+                Content(
+                    role='user',
+                    parts=[
+                        Part.from_text('Bisheriger Gesprächskontext (Zusammenfassung):')
+                    ],
+                ),
+                Content(role='model', parts=[Part.from_text(summary_response.text)]),
+                *keep_raw,
+            ]
+
+            self.chat_session.history[:] = new_history
+            logger.debug('Chat history has been successfully summarized.')
 
     def ask(self, question: str) -> str:
         """Sends a question to the LLM and handles potential tool calls recursively."""
         logger.info(f'Processing user question: {question}')
-        chat = self.model.start_chat()
-        response = chat.send_message(question)
 
-        # Handle Funcion Call (Tool use)
-        while response.candidates[0].content.parts[0].function_call:
-            # Collect all calls for the query
-            function_calls = [
-                part.function_call
-                for part in response.candidates[0].content.parts
-                if part.function_call
-            ]
+        try:
+            self._summarize_history()
 
-            responses_parts = []
-            for call in function_calls:
-                if call.name == 'search_docs':
-                    query_args = call.args['query']
-                    logger.info(
-                        f'Agent decided to call search_docs with: "{query_args}"'
-                    )
+            response = self.chat_session.send_message(question)
+            if not response.candidates or not response.candidates[0].content.parts:
+                return 'Entschuldigung, ich konnte keine Antwort generieren. Bitte formuliere die Frage präziser.'
+            self._log_usage(response)
 
-                    # Execute the actual search
-                    result_context = self.search_func(query_args)
+            # Tool execution loop (Recursive)
+            while response.candidates[0].content.parts[0].function_call:
+                # Collect all calls for the query
+                function_calls = [
+                    part.function_call
+                    for part in response.candidates[0].content.parts
+                    if part.function_call
+                ]
 
-                    # Feed the search results back to the LLM
-                    responses_parts.append(
-                        Part.from_function_response(
-                            name=call.name, response={'content': result_context}
+                responses_parts = []
+                for call in function_calls:
+                    if call.name == 'search_docs':
+                        query_args = call.args['query']
+
+                        # Execute the actual search
+                        result_context = self.search_func(query_args)
+
+                        # Feed the search results back to the LLM
+                        responses_parts.append(
+                            Part.from_function_response(
+                                name=call.name, response={'content': result_context}
+                            )
                         )
-                    )
-            # Send all responses back to the model
-            response = chat.send_message(responses_parts)
+                # Send tool results back to the SAME session
+                response = self.chat_session.send_message(responses_parts)
+                self._log_usage(response)
 
-        logger.debug('Final answer generated by the agent')
-        return response.text
+            logger.debug('Final answer generated by the agent')
+            return response.text
+
+        except Exception as e:
+            logger.error(f'Error calling LLM: {str(e)}')
+            return 'Es gab ein technisches Problem bei der Verarbeitung.'

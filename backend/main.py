@@ -21,15 +21,25 @@ config = Config()
 store = AgentStore(config)
 agent = Agent(config, search_func=store.search)
 
+# Store agents by session_id to support multiple concurrent users
+sessions: dict[str, Agent] = {}
+
 
 class ChatRequest(BaseModel):
     message: str
+    session_id: str = 'default'
 
 
 @app.post('/api/chat')
 async def chat(request: ChatRequest):
     try:
-        response_text = agent.ask(request.message)
+        # Get or create an agent instance for this specific session
+        if request.session_id not in sessions:
+            sessions[request.session_id] = Agent(config, search_func=store.search)
+
+        current_agent = sessions[request.session_id]
+        response_text = current_agent.ask(request.message)
+
         return {'answer': response_text}
 
     except Exception as err:

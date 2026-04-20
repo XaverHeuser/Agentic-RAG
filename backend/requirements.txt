@@ -4,6 +4,6 @@ fastapi==0.235.3
 google-cloud-aiplatform==1.147.0
 langchain-chroma==1.1.0
 langchain-community==0.4.1
-langchain-google-genai==4.2.1
+langchain-google-genai==4.2.2
 langchain-text-splitters==1.1.2
 pypdf==6.10.2
